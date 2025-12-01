@@ -1,0 +1,50 @@
+---
+data_transfer_tasks:
+  small_payload:
+    - name: "Transfer 100 byte payload"
+      module: "copy"
+      content: "{{ 'x' * 100 }}"
+      dest: "/tmp/small_payload.txt"
+      measurement: "small_payload_transfer"
+      
+    - name: "Transfer 100 small files"
+      module: "copy"
+      content: "Data {{ item }}"
+      dest: "/tmp/small_file_{{ item }}.txt"
+      with_sequence: "start=1 end=100"
+      measurement: "many_small_files"
+      
+  medium_payload:
+    - name: "Transfer 10KB payload"
+      module: "copy"
+      content: "{{ 'data' * 2560 }}"
+      dest: "/tmp/medium_payload.txt"
+      measurement: "medium_payload_transfer"
+      
+    - name: "Transfer 50 medium files"
+      module: "copy"
+      content: "{{ 'medium_data' * 100 }}"
+      dest: "/tmp/medium_file_{{ item }}.txt"
+      with_sequence: "start=1 end=50"
+      measurement: "multiple_medium_files"
+      
+  large_payload:
+    - name: "Generate and transfer 1MB file"
+      module: "shell"
+      command: |
+        dd if=/dev/urandom of=/tmp/large_source.dat bs=1M count=1 status=none
+        echo "Generated 1MB file"
+      measurement: "large_file_generation"
+      
+    - name: "Copy large file via Ansible"
+      module: "copy"
+      src: "/tmp/large_source.dat"
+      dest: "/tmp/large_destination.dat"
+      measurement: "large_file_transfer"
+      
+  streaming:
+    - name: "Stream data through pipe"
+      module: "shell"
+      command: |
+        dd if=/dev/zero bs=1M count=5 | base64 | wc -c
+      measurement: "data_streaming_throughput"

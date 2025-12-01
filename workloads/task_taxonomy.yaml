@@ -1,0 +1,64 @@
+---
+# SSH Backend Benchmark Task Taxonomy
+# Each category is designed to expose specific differences
+
+task_categories:
+  # Category 1: Connection Performance
+  # Measures: Initial connection time, reuse efficiency, parallel connections
+  connection_performance:
+    - connection_establishment
+    - connection_reuse
+    - parallel_connections
+    - connection_teardown
+  
+  # Category 2: Data Transfer
+  # Measures: Small/large file performance, streaming efficiency
+  data_transfer:
+    - small_payloads
+    - medium_payloads
+    - large_payloads
+    - streaming_transfers
+  
+  # Category 3: Computation Tasks
+  # Measures: CPU-bound vs IO-bound performance
+  computation:
+    - cpu_intensive
+    - memory_intensive
+    - mixed_workload
+  
+  # Category 4: Real-world Operations
+  # Measures: Common DevOps tasks performance
+  realworld_ops:
+    - file_operations
+    - process_management
+    - service_control
+    - configuration_management
+  
+  # Category 5: Error & Recovery
+  # Measures: Error handling, reconnection behavior
+  error_recovery:
+    - connection_drops
+    - timeout_handling
+    - retry_behavior
+
+# Expected Performance Differences by Category
+expected_differences:
+  connection_performance:
+    controlpersist: "Better connection reuse, lower latency after first connection"
+    paramiko: "Consistent connection time, no reuse benefits"
+  
+  data_transfer:
+    controlpersist: "Better large file throughput, connection reuse helps"
+    paramiko: "Potential overhead in data serialization"
+  
+  computation:
+    controlpersist: "Minimal overhead, native execution"
+    paramiko: "Python layer overhead in command execution"
+  
+  realworld_ops:
+    controlpersist: "Better for repetitive tasks due to connection reuse"
+    paramiko: "More consistent across varied operations"
+  
+  error_recovery:
+    controlpersist: "Better at maintaining persistent connections"
+    paramiko: "Better error messages and debugging"

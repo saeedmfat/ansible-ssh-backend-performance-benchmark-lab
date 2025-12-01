@@ -1,0 +1,85 @@
+---
+computation_tasks:
+  cpu_intensive:
+    - name: "Calculate prime numbers (CPU bound)"
+      module: "shell"
+      command: |
+        python3 -c "
+        import time
+        start = time.perf_counter()
+        
+        def is_prime(n):
+            if n < 2: return False
+            for i in range(2, int(n**0.5) + 1):
+                if n % i == 0: return False
+            return True
+        
+        primes = [i for i in range(2, 10000) if is_prime(i)]
+        duration = time.perf_counter() - start
+        print(f'Found {len(primes)} primes in {duration:.4f} seconds')
+        "
+      measurement: "prime_calculation_time"
+      
+    - name: "Matrix multiplication"
+      module: "shell"
+      command: |
+        python3 -c "
+        import time
+        start = time.perf_counter()
+        
+        size = 200
+        matrix_a = [[i*j for j in range(size)] for i in range(size)]
+        matrix_b = [[i+j for j in range(size)] for i in range(size)]
+        result = [[sum(a*b for a,b in zip(row, col)) for col in zip(*matrix_b)] for row in matrix_a]
+        
+        duration = time.perf_counter() - start
+        print(f'Matrix {size}x{size} multiplication: {duration:.4f} seconds')
+        "
+      measurement: "matrix_multiplication_time"
+      
+  memory_intensive:
+    - name: "Large list operations"
+      module: "shell"
+      command: |
+        python3 -c "
+        import time
+        start = time.perf_counter()
+        
+        # Create and manipulate large data structures
+        data = list(range(1000000))
+        squared = [x*x for x in data]
+        filtered = [x for x in squared if x % 2 == 0]
+        sorted_data = sorted(filtered)
+        
+        duration = time.perf_counter() - start
+        print(f'Processed {len(data)} elements: {duration:.4f} seconds')
+        "
+      measurement: "memory_operations_time"
+      
+  mixed_workload:
+    - name: "Combined CPU/memory workload"
+      module: "shell"
+      command: |
+        python3 -c "
+        import time, random, math
+        
+        start = time.perf_counter()
+        
+        # Phase 1: CPU intensive (mathematical calculations)
+        math_results = []
+        for i in range(10000):
+            math_results.append(math.sin(i) * math.cos(i) + math.sqrt(abs(i)))
+        
+        # Phase 2: Memory intensive (data manipulation)
+        data = [random.random() for _ in range(50000)]
+        data.sort()
+        data = [x*x for x in data if x > 0.5]
+        
+        # Phase 3: Mixed (string operations)
+        strings = [str(x) for x in data[:1000]]
+        joined = ''.join(strings)
+        
+        duration = time.perf_counter() - start
+        print(f'Mixed workload completed: {duration:.4f} seconds')
+        "
+      measurement: "mixed_workload_time"

@@ -1,0 +1,61 @@
+---
+measurement_variables:
+  timestamp_format: "epoch_nano"  # Using epoch for precise timing
+  measurement_points:
+    - connection_establishment
+    - file_transfer
+    - computation
+    - error_recovery
+    - total_duration
+  
+  csv_output_format:
+    columns:
+      - timestamp
+      - workload
+      - backend
+      - target_count
+      - measurement_point
+      - value
+      - unit
+
+measurement_tasks:
+  - name: "Start timing measurement"
+    set_fact:
+      measurement_start_time: "{{ ansible_date_time.epoch }}"
+    delegate_to: localhost
+    run_once: yes
+  
+  - name: "Record measurement point"
+    set_fact:
+      measurement_points: "{{ measurement_points | default([]) + [{
+        'point': point_name,
+        'timestamp': ansible_date_time.epoch,
+        'value': point_value,
+        'unit': point_unit
+      }] }}"
+    delegate_to: localhost
+    run_once: yes
+    vars:
+      point_name: "{{ measurement_point }}"
+      point_value: "{{ measurement_value }}"
+      point_unit: "{{ measurement_unit | default('seconds') }}"
+  
+  - name: "Export measurements to CSV"
+    delegate_to: localhost
+    run_once: yes
+    vars:
+      output_file: "/tmp/benchmark_measurements.csv"
+    tasks:
+      - name: "Create CSV header"
+        lineinfile:
+          path: "{{ output_file }}"
+          line: "timestamp,workload,backend,targets,measurement_point,value,unit"
+          create: yes
+          state: present
+        when: not lookup('file', output_file, default='') | length > 0
+      
+      - name: "Append measurements"
+        lineinfile:
+          path: "{{ output_file }}"
+          line: "{{ item.timestamp }},{{ workload_type }},{{ ansible_connection }},{{ groups['all'] | length }},{{ item.point }},{{ item.value }},{{ item.unit }}"
+        loop: "{{ measurement_points }}"

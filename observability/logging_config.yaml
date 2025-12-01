@@ -1,0 +1,157 @@
+---
+# Comprehensive Logging Configuration for SSH Benchmarking
+
+logging_system:
+  # Log levels and destinations
+  log_levels:
+    controller: "DEBUG"
+    targets: "INFO"
+    measurement: "DEBUG"
+    resource_monitor: "INFO"
+    
+  # Log destinations
+  destinations:
+    - type: "file"
+      path: "/var/log/ansible-benchmark/"
+      rotation:
+        max_size: "100MB"
+        backup_count: 10
+        compression: "gzip"
+        
+    - type: "stdout"
+      enabled: true
+      format: "human_readable"
+      
+    - type: "syslog"
+      enabled: false
+      facility: "local0"
+      
+    - type: "remote"
+      enabled: false
+      protocol: "udp"
+      host: "log-aggregator.example.com"
+      port: 514
+
+  # Log formats
+  formats:
+    json:
+      timestamp_format: "ISO8601"
+      include_fields:
+        - "timestamp"
+        - "level"
+        - "logger"
+        - "message"
+        - "hostname"
+        - "pid"
+        - "experiment_id"
+        - "correlation_id"
+        
+    human_readable:
+      format: "[%(asctime)s] [%(levelname)8s] [%(name)s] %(message)s"
+      date_format: "%Y-%m-%d %H:%M:%S.%f"
+
+  # Log categories
+  categories:
+    system:
+      - "kernel"
+      - "systemd"
+      - "lxd"
+      - "network"
+      
+    application:
+      - "ansible"
+      - "ssh"
+      - "paramiko"
+      - "measurement"
+      
+    benchmark:
+      - "workload"
+      - "scaling"
+      - "iteration"
+      - "results"
+      
+    resource:
+      - "cpu"
+      - "memory"
+      - "disk"
+      - "network"
+      - "temperature"
+
+# Log retention policy
+retention:
+  active_logs: "30 days"
+  archived_logs: "1 year"
+  compression: "gzip"
+  encryption: false
+
+# Log analysis and alerting
+analysis:
+  real_time_analysis: true
+  anomaly_detection: true
+  pattern_recognition: true
+  alert_triggers:
+    - condition: "error_count > 10 per minute"
+      action: "email_alert"
+      severity: "critical"
+      
+    - condition: "cpu_usage > 90% for 5 minutes"
+      action: "console_warning"
+      severity: "warning"
+      
+    - condition: "memory_usage > 95%"
+      action: "slack_alert"
+      severity: "critical"
+
+# Performance logging
+performance_logging:
+  enabled: true
+  sampling_rate: "100ms"
+  metrics:
+    - "ansible_execution_time"
+    - "ssh_connection_time"
+    - "file_transfer_rate"
+    - "task_completion_rate"
+    - "error_rate"
+    
+  thresholds:
+    warning:
+      ssh_connection_time: "> 2 seconds"
+      error_rate: "> 5%"
+      
+    critical:
+      ssh_connection_time: "> 5 seconds"
+      error_rate: "> 20%"
+
+# Audit logging
+audit_logging:
+  enabled: true
+  events:
+    - "experiment_start"
+    - "experiment_end"
+    - "configuration_change"
+    - "error_occurrence"
+    - "threshold_violation"
+    
+  fields:
+    required:
+      - "timestamp"
+      - "event_type"
+      - "user"
+      - "host"
+      - "experiment_id"
+      
+    optional:
+      - "duration"
+      - "result"
+      - "error_message"
+      - "resource_usage"
+
+# Distributed logging (for multi-node)
+distributed_logging:
+  enabled: true
+  aggregation_point: "controller"
+  protocol: "tcp"
+  buffer_size: "10MB"
+  compression: true
+  encryption: false
+  node_identification: "hostname_ip"

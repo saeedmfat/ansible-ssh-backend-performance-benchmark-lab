@@ -1,0 +1,36 @@
+---
+- name: "Data-Transfer Intensive Workload"
+  hosts: all
+  gather_facts: false
+  
+  vars:
+    workload_type: "data_transfer_intensive"
+    measurement_start: "{{ ansible_date_time.epoch }}"
+  
+  tasks:
+    - name: "Prepare directories"
+      file:
+        path: "/tmp/benchmark_data"
+        state: directory
+    
+    - name: "Run small file transfers"
+      include_tasks: ../tasks/data_transfer_tasks.yaml
+      when: "'small_file_tasks' in vars"
+    
+    - name: "Run medium file transfers"
+      include_tasks: ../tasks/data_transfer_tasks.yaml
+      when: "'medium_file_tasks' in vars"
+    
+    - name: "Run large file transfers"
+      include_tasks: ../tasks/data_transfer_tasks.yaml
+      when: "'large_file_tasks' in vars"
+    
+    - name: "Cleanup temporary files"
+      shell: |
+        rm -rf /tmp/benchmark_data
+        rm -f /tmp/*.dat /tmp/*.txt
+      ignore_errors: yes
+      
+    - name: "Record completion"
+      debug:
+        msg: "Data-transfer workload completed in {{ ansible_date_time.epoch | int - measurement_start | int }} seconds"

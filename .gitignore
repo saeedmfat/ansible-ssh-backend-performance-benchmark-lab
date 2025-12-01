@@ -1,0 +1,31 @@
+# Benchmark results and outputs
+results/
+*/results/
+benchmark_*.yaml
+playbook_output_*.log
+benchmark_results.csv
+container_resources_*.csv
+host_resources_*.csv
+monitor_pids_*.txt
+
+# Logs
+*.log
+logs/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# System files
+.DS_Store
+*~
+\#*\#
+.\#*
+
+# Ansible retry files
+*.retry
+
+# Temporary files
+*.tmp
+*.temp
+*.pid

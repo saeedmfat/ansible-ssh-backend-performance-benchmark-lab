@@ -1,0 +1,131 @@
+---
+cpu_intensive_tasks:
+  - name: "Prime number calculation (CPU bound)"
+    shell: |
+      python3 -c "
+      import time, math
+      
+      start = time.perf_counter()
+      
+      def is_prime(n):
+          if n < 2: return False
+          for i in range(2, int(math.sqrt(n)) + 1):
+              if n % i == 0: return False
+          return True
+      
+      primes = [i for i in range(2, 5000) if is_prime(i)]
+      duration = time.perf_counter() - start
+      
+      print(f'CPU: Found {len(primes)} primes in {duration:.4f}s')
+      "
+    register: prime_calculation
+    changed_when: false
+  
+  - name: "Matrix multiplication benchmark"
+    shell: |
+      python3 -c "
+      import time, random
+      
+      start = time.perf_counter()
+      size = 150
+      
+      # Create matrices
+      A = [[random.random() for _ in range(size)] for _ in range(size)]
+      B = [[random.random() for _ in range(size)] for _ in range(size)]
+      
+      # Multiply
+      result = [[sum(A[i][k] * B[k][j] for k in range(size)) 
+                for j in range(size)] for i in range(size)]
+      
+      duration = time.perf_counter() - start
+      print(f'CPU: Matrix {size}x{size} multiplication: {duration:.4f}s')
+      "
+    register: matrix_multiplication
+    changed_when: false
+
+memory_intensive_tasks:
+  - name: "Large data structure manipulation"
+    shell: |
+      python3 -c "
+      import time, random
+      
+      start = time.perf_counter()
+      
+      # Create large data structures
+      large_list = [random.random() for _ in range(1000000)]
+      large_dict = {i: random.random() for i in range(100000)}
+      
+      # Perform memory-intensive operations
+      sorted_list = sorted(large_list)
+      filtered_list = [x for x in sorted_list if x > 0.5]
+      transformed_dict = {k: v*v for k, v in large_dict.items()}
+      
+      duration = time.perf_counter() - start
+      print(f'MEM: Processed {len(large_list)} elements in {duration:.4f}s')
+      "
+    register: memory_operations
+    changed_when: false
+  
+  - name: "File I/O and memory mixing"
+    shell: |
+      python3 -c "
+      import time, os, json
+      
+      start = time.perf_counter()
+      
+      # Create complex data structure
+      data = {
+          'numbers': list(range(10000)),
+          'strings': [str(i)*10 for i in range(1000)],
+          'nested': {f'key_{i}': {'subkey': i*i} for i in range(500)}
+      }
+      
+      # Write to file
+      with open('/tmp/complex_data.json', 'w') as f:
+          json.dump(data, f)
+      
+      # Read back
+      with open('/tmp/complex_data.json', 'r') as f:
+          loaded = json.load(f)
+      
+      # Process
+      processed = {k: len(str(v)) for k, v in loaded.items()}
+      
+      duration = time.perf_counter() - start
+      print(f'MEM: File I/O and processing: {duration:.4f}s')
+      "
+    register: file_memory_mix
+    changed_when: false
+
+mixed_workload_tasks:
+  - name: "Combined CPU, memory, and I/O workload"
+    shell: |
+      python3 -c "
+      import time, math, random, json, os
+      
+      start = time.perf_counter()
+      
+      # Phase 1: CPU-intensive
+      cpu_result = sum(math.sin(i) * math.cos(i) for i in range(10000))
+      
+      # Phase 2: Memory-intensive
+      data = [random.random() for _ in range(50000)]
+      data.sort()
+      filtered = [x for x in data if x > 0.7]
+      
+      # Phase 3: I/O
+      with open('/tmp/mixed_output.txt', 'w') as f:
+          for i, val in enumerate(filtered[:1000]):
+              f.write(f'Line {i}: {val}\\n')
+      
+      # Phase 4: Mixed
+      with open('/tmp/mixed_output.txt', 'r') as f:
+          lines = f.readlines()
+          line_lengths = [len(line) for line in lines]
+          avg_length = sum(line_lengths) / len(line_lengths)
+      
+      duration = time.perf_counter() - start
+      print(f'MIXED: All phases completed in {duration:.4f}s')
+      "
+    register: mixed_workload
+    changed_when: false

@@ -1,0 +1,37 @@
+---
+name: "Data-Transfer Heavy Workload"
+description: "Focus on file transfer and data streaming performance"
+tasks:
+  - name: "Small file transfer storm"
+    template: "data_transfer_tasks"
+    task_type: "many_small_files"
+    file_count: 100
+    file_size: "1KB"
+    
+  - name: "Large file transfer"
+    template: "data_transfer_tasks"
+    task_type: "large_payload"
+    size: "10MB"
+    chunks: 10
+    
+  - name: "Mixed size transfer"
+    template: "data_transfer_tasks"
+    task_type: "mixed_transfer"
+    sizes: ["1KB", "10KB", "100KB", "1MB"]
+    count_per_size: 25
+    
+  - name: "Streaming data processing"
+    template: "data_transfer_tasks"
+    task_type: "streaming"
+    data_size: "50MB"
+    processing: "base64_encode"
+    
+metrics_to_collect:
+  - "transfer_throughput_small"
+  - "transfer_throughput_large"
+  - "streaming_bandwidth"
+  - "concurrent_transfer_performance"
+  
+expected_differences:
+  controlpersist: "Better for large transfers due to SSH connection reuse"
+  paramiko: "May have overhead in Python serialization/deserialization"

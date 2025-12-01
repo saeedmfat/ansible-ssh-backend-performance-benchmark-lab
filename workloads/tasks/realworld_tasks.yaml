@@ -1,0 +1,143 @@
+---
+file_operation_tasks:
+  - name: "Common file operations"
+    shell: |
+      # Create directory structure
+      mkdir -p /tmp/benchmark_files/{dir1,dir2,dir3}
+      
+      # Create files
+      for i in {1..50}; do
+        echo "Content for file $i" > /tmp/benchmark_files/file_$i.txt
+      done
+      
+      # List files
+      find /tmp/benchmark_files -type f | wc -l
+      
+      # Copy files
+      cp -r /tmp/benchmark_files /tmp/benchmark_files_backup
+      
+      # Cleanup
+      rm -rf /tmp/benchmark_files
+    register: file_ops
+    changed_when: false
+  
+  - name: "File permission and ownership changes"
+    shell: |
+      # Create test files
+      touch /tmp/test_file{1..10}.txt
+      
+      # Change permissions
+      chmod 755 /tmp/test_file*.txt
+      
+      # Change ownership (if possible)
+      chown nobody:nogroup /tmp/test_file*.txt 2>/dev/null || true
+      
+      # Verify
+      ls -la /tmp/test_file*.txt | head -5
+    register: permission_ops
+    changed_when: false
+
+process_management_tasks:
+  - name: "Process creation and management"
+    shell: |
+      # Start background processes
+      sleep 2 &
+      sleep_pid1=$!
+      
+      sleep 3 &
+      sleep_pid2=$!
+      
+      # List processes
+      ps aux | grep sleep | grep -v grep
+      
+      # Kill processes
+      kill $sleep_pid1 $sleep_pid2 2>/dev/null || true
+      
+      echo "Process management test completed"
+    register: process_mgmt
+    changed_when: false
+  
+  - name: "Service-like operations"
+    shell: |
+      # Create a simple service script
+      cat > /tmp/test_service.sh << 'SCRIPT'
+      #!/bin/bash
+      while true; do
+        echo "Service running: $(date)" >> /tmp/service.log
+        sleep 1
+      done
+      SCRIPT
+      
+      chmod +x /tmp/test_service.sh
+      
+      # Start service
+      nohup /tmp/test_service.sh > /tmp/service.out 2>&1 &
+      service_pid=$!
+      
+      # Let it run briefly
+      sleep 2
+      
+      # Check if running
+      ps -p $service_pid >/dev/null && echo "Service running: PID $service_pid"
+      
+      # Stop service
+      kill $service_pid 2>/dev/null || true
+      
+      # Cleanup
+      rm -f /tmp/test_service.sh /tmp/service.log /tmp/service.out
+    register: service_ops
+    changed_when: false
+
+configuration_management_tasks:
+  - name: "Configuration file management"
+    shell: |
+      # Create config file
+      cat > /tmp/app_config.yaml << 'CONFIG'
+      database:
+        host: localhost
+        port: 5432
+        name: benchmark_db
+        
+      logging:
+        level: info
+        file: /var/log/benchmark.log
+        
+      server:
+        port: 8080
+        workers: 4
+      CONFIG
+      
+      # Modify config
+      sed -i 's/port: 5432/port: 5433/' /tmp/app_config.yaml
+      sed -i 's/level: info/level: debug/' /tmp/app_config.yaml
+      
+      # Validate config
+      grep -c ':' /tmp/app_config.yaml
+    register: config_mgmt
+    changed_when: false
+  
+  - name: "Environment configuration"
+    shell: |
+      # Set environment variables
+      export BENCHMARK_TEST="SSH_PERFORMANCE"
+      export ITERATION_COUNT=5
+      export TIMESTAMP=$(date +%s)
+      
+      # Use them
+      echo "Test: $BENCHMARK_TEST"
+      echo "Iteration: $ITERATION_COUNT"
+      echo "Timestamp: $TIMESTAMP"
+      
+      # Create environment file
+      cat > /tmp/benchmark.env << ENV
+      BENCHMARK_TEST=SSH_PERFORMANCE
+      ITERATION_COUNT=5
+      TIMESTAMP=$TIMESTAMP
+      SSH_BACKEND={{ ansible_connection }}
+      ENV
+      
+      # Source and verify
+      source /tmp/benchmark.env
+      echo "Backend: $SSH_BACKEND"
+    register: env_config
+    changed_when: false

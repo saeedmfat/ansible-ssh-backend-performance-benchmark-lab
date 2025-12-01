@@ -1,0 +1,45 @@
+---
+- name: "Connection-Intensive Workload"
+  hosts: all
+  gather_facts: false
+  serial: 1  # Run on one host at a time for accurate measurement
+  
+  vars_files:
+    - ../task_taxonomy.yaml
+  
+  vars:
+    workload_type: "connection_intensive"
+    measurement_start: "{{ ansible_date_time.epoch }}"
+  
+  tasks:
+    - name: "Record workload start"
+      debug:
+        msg: "Starting connection-intensive workload at {{ ansible_date_time.iso8601 }}"
+    
+    # Include connection tasks
+    - include_vars:
+        file: ../tasks/connection_tasks.yaml
+    
+    - name: "Run connection establishment tests"
+      include_tasks: ../tasks/connection_tasks.yaml
+      when: "'connection_establishment_tasks' in vars"
+    
+    - name: "Run connection reuse tests"
+      include_tasks: ../tasks/connection_tasks.yaml
+      when: "'connection_reuse_tasks' in vars"
+      
+    - name: "Record workload completion"
+      debug:
+        msg: "Connection-intensive workload completed"
+      
+    - name: "Calculate duration"
+      set_fact:
+        workload_duration: "{{ ansible_date_time.epoch | int - measurement_start | int }}"
+      
+    - name: "Output summary"
+      debug:
+        msg: |
+          Workload: {{ workload_type }}
+          Duration: {{ workload_duration }} seconds
+          SSH Backend: {{ ansible_connection }}
+          Target: {{ inventory_hostname }}

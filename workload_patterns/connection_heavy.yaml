@@ -1,0 +1,31 @@
+---
+name: "Connection-Heavy Workload"
+description: "Many short-lived connections to test connection establishment overhead"
+tasks:
+  - name: "Establish 50 separate connections"
+    template: "connection_tasks"
+    task_type: "multiple_sequential_connections"
+    count: 50
+    payload_size: "small"
+    
+  - name: "Mixed connection reuse pattern"
+    template: "connection_tasks"
+    task_type: "alternating_new_reuse"
+    pattern: "new,reuse,new,reuse,new"
+    iterations: 20
+    
+  - name: "Parallel connection test"
+    template: "connection_tasks"
+    task_type: "parallel_connections"
+    concurrent: 10
+    operations_per_connection: 5
+    
+metrics_to_collect:
+  - "connection_establishment_time"
+  - "connection_reuse_latency"
+  - "parallel_connection_overhead"
+  - "connection_teardown_time"
+  
+expected_differences:
+  controlpersist: "Should show significant improvement on connection reuse"
+  paramiko: "May have consistent connection time, no reuse benefit"

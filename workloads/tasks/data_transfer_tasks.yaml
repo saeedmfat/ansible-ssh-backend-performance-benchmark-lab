@@ -1,0 +1,79 @@
+---
+small_file_tasks:
+  - name: "Create 1KB test file"
+    copy:
+      content: "{{ 'x' * 1024 }}"
+      dest: "/tmp/test_1kb.txt"
+  
+  - name: "Transfer 100 small (1KB) files"
+    copy:
+      content: "Small file {{ item }} data: {{ 1000 | random | to_json }}"
+      dest: "/tmp/small_files/small_{{ item }}.txt"
+    with_sequence: start=1 end=100
+    loop_control:
+      label: "File {{ item }}"
+  
+  - name: "Read back small files"
+    shell: "wc -c /tmp/small_files/small_{{ item }}.txt"
+    with_sequence: start=1 end=100
+    register: small_file_reads
+    changed_when: false
+
+medium_file_tasks:
+  - name: "Create 1MB test file locally"
+    delegate_to: localhost
+    shell: |
+      dd if=/dev/urandom of=/tmp/source_1mb.dat bs=1M count=1 status=none
+      echo "Created 1MB test file"
+    changed_when: false
+  
+  - name: "Transfer 1MB file to target"
+    copy:
+      src: "/tmp/source_1mb.dat"
+      dest: "/tmp/transferred_1mb.dat"
+  
+  - name: "Transfer 10 medium files (100KB each)"
+    copy:
+      content: "{{ lookup('pipe', 'base64 /dev/urandom | head -c 102400') }}"
+      dest: "/tmp/medium_files/medium_{{ item }}.dat"
+    with_sequence: start=1 end=10
+    loop_control:
+      label: "Medium file {{ item }}"
+
+large_file_tasks:
+  - name: "Generate and transfer 10MB file"
+    shell: |
+      # Generate file on target
+      dd if=/dev/urandom of=/tmp/generated_10mb.dat bs=1M count=10 status=none
+      echo "Generated 10MB file at $(date +%s.%N)"
+    register: file_generation
+    changed_when: false
+  
+  - name: "Copy large file between locations on target"
+    shell: |
+      time cp /tmp/generated_10mb.dat /tmp/copied_10mb.dat
+      echo "Copy completed at $(date +%s.%N)"
+    register: file_copy
+    changed_when: false
+
+streaming_tasks:
+  - name: "Stream data through multiple commands"
+    shell: |
+      # Test streaming performance
+      dd if=/dev/zero bs=1M count=5 2>/dev/null | \
+      base64 | \
+      head -c 10485760 | \
+      wc -c
+    register: streaming_test
+    changed_when: false
+  
+  - name: "Continuous data processing"
+    shell: |
+      for i in {1..100}; do
+        echo "Data chunk $i: $(date +%s.%N)" | tee -a /tmp/stream.log
+        sleep 0.01
+      done
+      echo "Stream completed"
+    async: 5
+    poll: 0
+    register: continuous_stream

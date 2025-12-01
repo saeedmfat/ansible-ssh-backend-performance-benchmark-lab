@@ -1,0 +1,68 @@
+---
+# SSH Backend Performance Measurement Dimensions
+measurement_dimensions:
+  connection:
+    - name: "initial_connection"
+      description: "First SSH connection establishment time"
+      
+    - name: "persistent_reuse"  
+      description: "Reusing ControlPersist connections vs Paramiko new connections"
+      
+    - name: "parallel_connections"
+      description: "Multiple simultaneous connections"
+
+  data_transfer:
+    - name: "small_files"
+      description: "Many small file transfers (< 1KB)"
+      
+    - name: "medium_files"
+      description: "Medium file transfers (1KB - 1MB)"
+      
+    - name: "large_files"
+      description: "Large file transfers (> 1MB)"
+      
+    - name: "streaming"
+      description: "Continuous data streaming"
+
+  computation:
+    - name: "cpu_intensive"
+      description: "CPU-bound Python/math operations"
+      
+    - name: "memory_intensive"
+      description: "Memory allocation and manipulation"
+      
+    - name: "mixed_workload"
+      description: "Combined CPU/memory operations"
+
+  system_interaction:
+    - name: "process_creation"
+      description: "Creating and managing processes"
+      
+    - name: "file_operations"
+      description: "Filesystem operations (create, read, write, delete)"
+      
+    - name: "service_management"
+      description: "Starting/stopping services"
+
+  network_patterns:
+    - name: "sequential_execution"
+      description: "Tasks executed one after another"
+      
+    - name: "parallel_execution"
+      description: "Tasks executed in parallel (async)"
+      
+    - name: "mixed_parallelism"
+      description: "Mix of serial and parallel tasks"
+
+# Task Categories for Scientific Comparison
+task_categories:
+  category_1: "Connection Establishment & Teardown"
+  category_2: "Small Payload Operations"
+  category_3: "Medium Payload Operations"
+  category_4: "Large Payload Operations"
+  category_5: "CPU-Bound Computations"
+  category_6: "IO-Bound Operations"
+  category_7: "Mixed Workloads"
+  category_8: "Error Handling & Recovery"
+  category_9: "Concurrent Operations"
+  category_10: "Long-Running Tasks"

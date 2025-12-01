@@ -1,0 +1,37 @@
+---
+- name: "Mixed Real-world Workload"
+  hosts: all
+  gather_facts: false
+  
+  vars:
+    workload_type: "mixed_realworld"
+    measurement_start: "{{ ansible_date_time.epoch }}"
+  
+  tasks:
+    - name: "Phase 1: File Operations"
+      include_tasks: ../tasks/realworld_tasks.yaml
+      when: "'file_operation_tasks' in vars"
+    
+    - name: "Phase 2: Computation"
+      include_tasks: ../tasks/computation_tasks.yaml
+      when: "'cpu_intensive_tasks' in vars"
+    
+    - name: "Phase 3: Configuration Management"
+      include_tasks: ../tasks/realworld_tasks.yaml
+      when: "'configuration_management_tasks' in vars"
+    
+    - name: "Phase 4: Error Testing"
+      include_tasks: ../tasks/error_tasks.yaml
+      when: "'connection_error_tasks' in vars"
+    
+    - name: "Final cleanup"
+      shell: |
+        rm -rf /tmp/benchmark_* /tmp/test_* /tmp/*.json /tmp/*.yaml 2>/dev/null || true
+      ignore_errors: yes
+      
+    - name: "Workload summary"
+      debug:
+        msg: |
+          Mixed real-world workload completed
+          Duration: {{ ansible_date_time.epoch | int - measurement_start | int }} seconds
+          Backend: {{ ansible_connection }}

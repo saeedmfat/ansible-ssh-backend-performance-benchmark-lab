@@ -1,0 +1,43 @@
+---
+- name: IO Intensive Workload
+  hosts: "{{ target_group | default('targets_1') }}"
+  gather_facts: false
+  serial: 1
+  
+  tasks:
+    - name: Create complex directory structure
+      file:
+        path: "/tmp/io_benchmark/level{{ item.0 }}/subdir{{ item.1 }}/file{{ item.2 }}.txt"
+        state: touch
+      with_nested:
+        - [1, 2, 3]
+        - [1, 2, 3, 4]
+        - [1, 2, 3, 4, 5]
+        
+    - name: Write large files with different patterns
+      shell: |
+        for i in {1..5}; do
+          dd if=/dev/urandom of=/tmp/large_file_$i.dat bs=1M count=5 status=none
+          echo "Created large_file_$i.dat"
+        done
+      register: dd_result
+      
+    - name: File compression and archiving
+      archive:
+        path: /tmp/io_benchmark
+        dest: /tmp/io_benchmark.tar.gz
+        format: gz
+        
+    - name: File searching and processing
+      shell: |
+        find /tmp/io_benchmark -name "*.txt" -exec wc -l {} + | tail -1
+      register: file_stats
+      
+    - name: Cleanup IO test files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/io_benchmark
+        - /tmp/io_benchmark.tar.gz
+        - /tmp/large_file_*.dat

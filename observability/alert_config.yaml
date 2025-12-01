@@ -1,0 +1,46 @@
+---
+alerting:
+  enabled: true
+  check_interval: 10
+  retention_days: 30
+  max_alerts: 1000
+
+notifications:
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    username: "your-email@gmail.com"
+    password: "your-app-password"
+    from_address: "benchmark-alerts@yourdomain.com"
+    to_addresses:
+      - "admin@yourdomain.com"
+      - "devops@yourdomain.com"
+  
+  slack:
+    enabled: false
+    webhook_url: "https://hooks.slack.com/services/XXX/XXX/XXX"
+    channel: "#benchmark-alerts"
+  
+  console:
+    enabled: true
+    format: "colored"
+
+storage:
+  alerts_file: "alerts.json"
+  metrics_dir: "monitoring_data"
+
+rules:
+  # Add custom rules here
+  custom_rules:
+    - name: "benchmark_completion"
+      condition: "metrics.get('benchmark_completed', False)"
+      severity: "info"
+      actions: ["console"]
+      cooldown_seconds: 60
+    
+    - name: "high_ssh_latency"
+      condition: "metrics.get('ssh_latency_95th_percentile', 0) > 1000"
+      severity: "warning"
+      actions: ["console", "email"]
+      cooldown_seconds: 300

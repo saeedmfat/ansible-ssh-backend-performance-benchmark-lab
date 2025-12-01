@@ -1,0 +1,71 @@
+---
+connection_error_tasks:
+  - name: "Test connection timeout handling"
+    shell: "sleep 10"
+    async: 2  # Timeout after 2 seconds
+    poll: 0
+    register: timeout_test
+    ignore_errors: yes
+  
+  - name: "Test command that fails"
+    shell: "non_existent_command_xyz"
+    register: failed_command
+    ignore_errors: yes
+  
+  - name: "Test recovery after failure"
+    shell: |
+      echo "First command: $(date +%s.%N)"
+      # Intentionally fail
+      false
+      echo "After failure: $(date +%s.%N)"
+    register: recovery_test
+    ignore_errors: yes
+
+retry_behavior_tasks:
+  - name: "Test retry mechanism"
+    shell: |
+      # Command that might fail randomly
+      if [ $((RANDOM % 3)) -eq 0 ]; then
+        echo "Simulating failure at $(date +%s.%N)"
+        exit 1
+      else
+        echo "Success at $(date +%s.%N)"
+        exit 0
+      fi
+    register: retry_test
+    until: retry_test.rc == 0
+    retries: 5
+    delay: 1
+    ignore_errors: yes
+  
+  - name: "Test connection drop simulation"
+    shell: |
+      echo "Before simulated drop: $(date +%s.%N)"
+      # Simulate network issue
+      sudo iptables -A INPUT -p tcp --dport 22 -j DROP 2>/dev/null || true
+      sleep 0.5
+      sudo iptables -D INPUT -p tcp --dport 22 -j DROP 2>/dev/null || true
+      echo "After recovery: $(date +%s.%N)"
+    register: drop_test
+    ignore_errors: yes
+
+error_message_tasks:
+  - name: "Compare error message clarity"
+    shell: |
+      # Test various error conditions
+      
+      # 1. Permission error
+      cat /root/.bashrc 2>&1 || true
+      
+      # 2. Command not found
+      nonexistent_command_abc 2>&1 || true
+      
+      # 3. Syntax error
+      echo "test" | grep -( 2>&1 || true
+      
+      # 4. File not found
+      cat /nonexistent/file.txt 2>&1 || true
+      
+      echo "Error testing completed at $(date +%s.%N)"
+    register: error_messages
+    changed_when: false

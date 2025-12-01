@@ -1,0 +1,37 @@
+---
+name: "Computation-Heavy Workload"
+description: "CPU and memory intensive operations to test execution efficiency"
+tasks:
+  - name: "Prime number calculation"
+    template: "computation_tasks"
+    task_type: "cpu_intensive"
+    operation: "prime_calculation"
+    range_end: 20000
+    
+  - name: "Matrix operations"
+    template: "computation_tasks"
+    task_type: "cpu_intensive"
+    operation: "matrix_multiplication"
+    matrix_size: 300
+    
+  - name: "Memory allocation and manipulation"
+    template: "computation_tasks"
+    task_type: "memory_intensive"
+    data_size: "large"
+    operations: ["create", "sort", "filter", "transform"]
+    
+  - name: "Mixed computational workload"
+    template: "computation_tasks"
+    task_type: "mixed_workload"
+    phases: ["cpu", "memory", "io", "network"]
+    duration_per_phase: "5s"
+    
+metrics_to_collect:
+  - "cpu_task_execution_time"
+  - "memory_operation_throughput"
+  - "mixed_workload_efficiency"
+  - "task_switching_overhead"
+  
+expected_differences:
+  controlpersist: "Minimal overhead, native execution"
+  paramiko: "Potential Python interpreter overhead in Paramiko layer"

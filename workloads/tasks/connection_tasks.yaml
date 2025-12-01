@@ -1,0 +1,46 @@
+---
+connection_establishment_tasks:
+  - name: "Measure initial SSH connection time"
+    raw: "echo 'Connection established at $(date +%s.%N)'"
+    register: initial_connection
+    changed_when: false
+  
+  - name: "Log initial connection timestamp"
+    set_fact:
+      connection_start_time: "{{ initial_connection.stdout }}"
+  
+  - name: "Measure connection reuse (second command)"
+    shell: "echo 'Reused connection at $(date +%s.%N)'"
+    register: reused_connection
+    changed_when: false
+  
+  - name: "Measure 10 sequential connections"
+    shell: |
+      for i in {1..10}; do
+        echo "Command $i at $(date +%s.%N)"
+      done
+    register: sequential_connections
+    changed_when: false
+  
+  - name: "Measure parallel-like connections"
+    shell: |
+      # Simulate quick successive commands
+      seq 5 | xargs -I {} sh -c 'echo "Parallel test {} at $(date +%s.%N)"'
+    register: parallel_connections
+    changed_when: false
+
+connection_reuse_tasks:
+  - name: "Execute 100 quick commands to test connection reuse"
+    shell: "echo 'Command {{ item }} at $(date +%s.%N)'"
+    with_sequence: start=1 end=100
+    register: reuse_benchmark
+    changed_when: false
+  
+  - name: "Mixed command types to test connection persistence"
+    shell: |
+      echo "Simple echo at $(date +%s.%N)"
+      pwd
+      whoami
+      echo "Complex path: $(pwd)/$(whoami) at $(date +%s.%N)"
+    register: mixed_commands
+    changed_when: false

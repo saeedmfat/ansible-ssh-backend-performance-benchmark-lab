@@ -1,0 +1,28 @@
+---
+connection_tasks:
+  - name: "Establish fresh SSH connection"
+    module: "raw"
+    command: "echo 'Connection test at $(date +%s.%N)'"
+    measurement: "initial_connection_time"
+    
+  - name: "Reuse SSH connection (ControlPersist)"
+    module: "shell"
+    command: "echo 'Reuse test at $(date +%s.%N)'"
+    measurement: "reuse_connection_time"
+    depends_on: "initial_connection"
+    
+  - name: "Multiple sequential connections"
+    module: "raw"
+    command: |
+      for i in {1..10}; do
+        echo "Connection $i at $(date +%s.%N)"
+      done
+    measurement: "sequential_connection_latency"
+    
+  - name: "Connection teardown and reestablish"
+    module: "shell"
+    command: |
+      # Simulate connection break
+      sleep 0.1
+      echo "Reestablished at $(date +%s.%N)"
+    measurement: "teardown_reestablish_time"

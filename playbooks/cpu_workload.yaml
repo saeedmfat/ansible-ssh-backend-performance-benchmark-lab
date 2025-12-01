@@ -1,0 +1,64 @@
+---
+- name: CPU Intensive Workload
+  hosts: "{{ target_group | default('targets_1') }}"
+  gather_facts: false
+  serial: 1
+  
+  tasks:
+    - name: Mathematical computation - Large factorial
+      shell: |
+        python3 -c "
+        import math
+        import time
+        start = time.time()
+        # Calculate large factorial with modulus to avoid overflow
+        result = 1
+        for i in range(1, 10000):
+            result = (result * i) % 1000000007
+        duration = time.time() - start
+        print(f'Factorial computation completed in {duration:.2f}s: {result}')
+        "
+      register: math_result
+      
+    - name: Matrix operations
+      shell: |
+        python3 -c "
+        import time
+        start = time.time()
+        size = 100
+        # Create and multiply matrices
+        matrix_a = [[i*j for j in range(size)] for i in range(size)]
+        matrix_b = [[i+j for j in range(size)] for i in range(size)]
+        result = [[sum(a*b for a,b in zip(row, col)) for col in zip(*matrix_b)] for row in matrix_a]
+        duration = time.time() - start
+        print(f'Matrix multiplication ({size}x{size}) completed in {duration:.2f}s')
+        "
+      register: matrix_result
+      
+    - name: Sorting and searching
+      shell: |
+        python3 -c "
+        import random
+        import time
+        start = time.time()
+        # Generate and sort large dataset
+        data = [random.randint(1, 1000000) for _ in range(50000)]
+        sorted_data = sorted(data)
+        # Binary search for multiple values
+        searches = [random.randint(1, 1000000) for _ in range(1000)]
+        found = 0
+        for search_val in searches:
+            low, high = 0, len(sorted_data) - 1
+            while low <= high:
+                mid = (low + high) // 2
+                if sorted_data[mid] == search_val:
+                    found += 1
+                    break
+                elif sorted_data[mid] < search_val:
+                    low = mid + 1
+                else:
+                    high = mid - 1
+        duration = time.time() - start
+        print(f'Sorted {len(sorted_data)} elements, found {found}/1000 values in {duration:.2f}s')
+        "
+      register: search_result
